@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Bank CMS - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background-color: skyblue;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+        }
+        header > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        nav ul li {
+            margin-left: 20px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            font-weight: bold;
+            color: black;
+        }
+        .welcome {
+            margin: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <h1>The Special Bank of Burlington</h1>
+        <nav>
+            <ul>
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/accounts}">Customer Accounts</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div>
+        <p>Hello Customer</p>
+    </div>
+</header>
+
+<div class="welcome">
+    <p>Welcome to the Customer Accounts Management System</p>
+</div>
+<h3>REST APIs</h3>
+<ul>
+    <li><a th:href="@{/api/accounts}">API: All Accounts (JSON)</a></li>
+    <li><a th:href="@{/api/accounts/prime}">API: Prime Accounts (JSON)</a></li>
+</ul>
+</body>
+</html>

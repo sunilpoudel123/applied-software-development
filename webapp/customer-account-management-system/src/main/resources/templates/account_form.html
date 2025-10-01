@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Bank CMS - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background-color: skyblue;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+        }
+        header > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        nav ul li {
+            margin-left: 20px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            font-weight: bold;
+            color: black;
+        }
+        .welcome {
+            margin: 20px;
+            font-size: 18px;
+        }
+        form {
+            max-width: 800px;
+            margin: 20px 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        fieldset {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+        }
+        legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+            padding: 0 10px;
+        }
+
+        /* --- Form Fields Layout (Using Flexbox) --- */
+        .form-group-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns for fields */
+            gap: 20px;
+        }
+        label {
+            display: block; /* Make label occupy full width in its grid cell */
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <h1>The Special Bank of Burlington</h1>
+        <nav>
+            <ul>
+                <li><a th:href="@{/}">Home</a></li>
+                <li><a th:href="@{/accounts}">Customer Accounts</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div>
+        <p>Hello Customer</p>
+    </div>
+</header>
+<h1>Create Customer Account</h1>
+
+<form th:action="@{/accounts}" method="post" th:object="${customer}">
+    <fieldset>
+        <legend>Customer</legend>
+        <div class="form-group-grid">
+
+        <label>First Name
+            <input type="text" th:field="*{firstName}" required />
+        </label>
+        <br/>
+        <label>Last Name
+            <input type="text" th:field="*{lastName}" required />
+        </label>
+        </div>
+    </fieldset>
+
+    <div th:object="${account}">
+        <fieldset>
+            <legend>Account</legend>
+            <div class="form-group-grid">
+
+            <label>Account Number
+                <input type="text" th:field="*{accountNumber}" required />
+            </label>
+            <br/>
+            <label>Account Type
+                <input type="text" th:field="*{accountType}" required />
+            </label>
+            <br/>
+            <label>Date Opened
+                <input type="date" th:field="*{dateOpened}" />
+            </label>
+            <br/>
+            <label>Balance
+                <input type="number" step="0.01" th:field="*{balance}" required />
+            </label>
+            </div>
+        </fieldset>
+    </div>
+
+    <button type="submit">Create</button>
+</form>
+
+<p><a th:href="@{/accounts}">Back to list</a></p>
+</body>
+</html>
