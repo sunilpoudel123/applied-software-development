@@ -1,0 +1,16 @@
+Functional Requirements (Dental Appointment Management System)
+
+1. Office Manager can register new Dentists with unique ID, name, contact, email, and specialization.
+2. Office Manager can register new Patients with name, contact, email, mailing address, and date of birth.
+3. Patients can request appointments online via form submission and by phone.
+4. Office Manager can book, reschedule, or cancel appointments.
+5. System sends email confirmation for booked, updated, or canceled appointments to Patients.
+6. Dentists can log in to the system securely and view their scheduled appointments and patient details.
+7. Patients can log in to the system securely and can view their scheduled appointments and dentist details.
+8. Patients can request cancellation or modification of appointments.
+9. System enforces appointment rule: Dentist cannot have more than 5 appointments per week.
+10. System blocks Patients with unpaid bills from requesting new appointments.
+11. System maintains records of ADS Surgery locations with name, address, and contact number.
+12. Appointment records must include patient, dentist, date, time, and surgery location.
+13. System must track and update the status of appointments (booked, canceled, rescheduled, completed).
+14. System must provide patient billing records and status (paid/unpaid).
