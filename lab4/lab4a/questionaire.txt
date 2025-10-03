@@ -1,0 +1,35 @@
+1) What is Spring?
+    Spring is a comprehensive framework for building Java applications.
+
+    It provides a wide range of features and tools to simplify the development process,
+    including support for dependency injection, aspect-oriented programming, transaction management, and more.
+
+    Spring is designed to be modular and flexible, allowing developers to use only the components they need for their specific application.
+
+2) What is Spring Boot?
+    Spring boot is a framework built on top of the Spring platform that simplifies the process of building and deploying Spring applications.
+
+    It provides a set of conventions and defaults that allow developers to quickly create production-ready applications with minimal configuration.
+
+3) What is the relation between Spring platform and Spring Boot?
+    Spring Boot is built on top of the Spring platform and provides a simplified way to create and deploy Spring applications.
+
+    It leverages the core features of the Spring platform while adding additional functionality and conventions to streamline the development process.
+
+4) What is the relation between Spring platform and Spring framework?
+    The Spring Framework is a core part of the Spring platform.
+
+    The Spring platform encompasses a broader set of tools and projects, including Spring Boot, Spring Cloud, and others,
+    while the Spring Framework provides the foundational features and capabilities for building Java applications.
+
+5) What is Dependency Injection and how is it done in the Spring platform/framework?
+    Dependency Injection (DI) is a design pattern that allows the separation of concerns in software development by
+    decoupling the creation and management of dependencies from the components that use them.
+
+    In the Spring platform/framework, DI is typically achieved through annotations such as @Autowired, @Component, @Service, and @Repository,
+    or through XML configuration.
+
+6) What is Inversion of Control (IoC) and how is it related to Spring?
+    Inversion of Control (IoC) is a design principle that reverses the traditional flow of control in software development.
+
+    Instead of components controlling their own dependencies, the control is inverted and handed over to a container or framework.
