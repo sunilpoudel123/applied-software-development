@@ -1,25 +1,87 @@
 use ads_dental;
--- sample data inserts for dental appointment system
+-CREATE TABLE `user` (
+                         `user_id` int NOT NULL AUTO_INCREMENT,
+                         `username` varchar(50) NOT NULL,
+                         `password` varchar(255) NOT NULL,
+                         `role` varchar(20) NOT NULL,
+                         PRIMARY KEY (`user_id`),
+                         UNIQUE KEY `username` (`username`)
+ )
 
-insert into user (username, password, role) values
-                                                ('manager1', 'hash123', 'officemanager'),
-                                                ('dentist1', 'hash234', 'dentist'),
-                                                ('patient1', 'hash345', 'patient');
+CREATE TABLE `dentist` (
+                           `dentist_id` int NOT NULL AUTO_INCREMENT,
+                           `first_name` varchar(50) NOT NULL,
+                           `last_name` varchar(50) NOT NULL,
+                           `phone` varchar(20) DEFAULT NULL,
+                           `email` varchar(100) DEFAULT NULL,
+                           `specialization` varchar(100) DEFAULT NULL,
+                           `user_id` int DEFAULT NULL,
+                           PRIMARY KEY (`dentist_id`),
+                           UNIQUE KEY `email` (`email`),
+                           UNIQUE KEY `user_id` (`user_id`),
+                           CONSTRAINT `dentist_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
+)
 
-insert into office_manager (first_name, last_name, phone, email, user_id) values
-    ('Anita', 'Sharma', '555-1111', 'anita.sharma@example.com', 1);
+CREATE TABLE `patient` (
+                           `patient_id` int NOT NULL AUTO_INCREMENT,
+                           `first_name` varchar(50) NOT NULL,
+                           `last_name` varchar(50) NOT NULL,
+                           `phone` varchar(20) DEFAULT NULL,
+                           `email` varchar(100) DEFAULT NULL,
+                           `address` varchar(255) DEFAULT NULL,
+                           `date_of_birth` date DEFAULT NULL,
+                           `user_id` int DEFAULT NULL,
+                           PRIMARY KEY (`patient_id`),
+                           UNIQUE KEY `email` (`email`),
+                           UNIQUE KEY `user_id` (`user_id`),
+                           CONSTRAINT `patient_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
+)
 
-insert into dentist (first_name, last_name, phone, email, specialization, user_id) values
-    ('Ravi', 'Kumar', '555-2222', 'ravi.kumar@example.com', 'Orthodontist', 2);
+CREATE TABLE `office_manager` (
+                                  `manager_id` int NOT NULL AUTO_INCREMENT,
+                                  `first_name` varchar(50) NOT NULL,
+                                  `last_name` varchar(50) NOT NULL,
+                                  `phone` varchar(20) DEFAULT NULL,
+                                  `email` varchar(100) DEFAULT NULL,
+                                  `user_id` int DEFAULT NULL,
+                                  PRIMARY KEY (`manager_id`),
+                                  UNIQUE KEY `email` (`email`),
+                                  UNIQUE KEY `user_id` (`user_id`),
+                                  CONSTRAINT `office_manager_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
+)
 
-insert into patient (first_name, last_name, phone, email, address, date_of_birth, user_id) values
-    ('Sunil', 'Verma', '555-3333', 'sunil.verma@example.com', '123 Main St', '1995-04-15', 3);
+CREATE TABLE `bill` (
+                        `bill_id` int NOT NULL AUTO_INCREMENT,
+                        `appointment_id` int NOT NULL,
+                        `amount` decimal(10,2) NOT NULL,
+                        `status` enum('paid','unpaid') DEFAULT 'unpaid',
+                        `issue_date` date NOT NULL,
+                        PRIMARY KEY (`bill_id`),
+                        UNIQUE KEY `appointment_id` (`appointment_id`),
+                        CONSTRAINT `bill_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `appointment` (`appointment_id`)
+)
 
-insert into surgery (name, address, phone) values
-    ('Downtown Dental Clinic', '456 Elm St', '555-4444');
+CREATE TABLE `surgery` (
+                           `surgery_id` int NOT NULL AUTO_INCREMENT,
+                           `name` varchar(100) NOT NULL,
+                           `address` varchar(255) NOT NULL,
+                           `phone` varchar(20) DEFAULT NULL,
+                           PRIMARY KEY (`surgery_id`)
+)
 
-insert into appointment (appointment_date, appointment_time, status, dentist_id, patient_id, surgery_id) values
-    ('2025-10-10', '10:00:00', 'booked', 1, 1, 1);
-
-insert into bill (appointment_id, amount, status, issue_date) values
-    (1, 150.00, 'unpaid', '2025-10-06');
+CREATE TABLE `appointment` (
+                               `appointment_id` int NOT NULL AUTO_INCREMENT,
+                               `appointment_date` date NOT NULL,
+                               `appointment_time` time NOT NULL,
+                               `status` enum('booked','completed','canceled') DEFAULT 'booked',
+                               `dentist_id` int NOT NULL,
+                               `patient_id` int NOT NULL,
+                               `surgery_id` int NOT NULL,
+                               PRIMARY KEY (`appointment_id`),
+                               UNIQUE KEY `unique_dentist_schedule` (`dentist_id`,`appointment_date`,`appointment_time`),
+                               KEY `patient_id` (`patient_id`),
+                               KEY `surgery_id` (`surgery_id`),
+                               CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`dentist_id`) REFERENCES `dentist` (`dentist_id`),
+                               CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`patient_id`),
+                               CONSTRAINT `appointment_ibfk_3` FOREIGN KEY (`surgery_id`) REFERENCES `surgery` (`surgery_id`)
+)

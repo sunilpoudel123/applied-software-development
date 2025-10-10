@@ -1,25 +1,82 @@
-use ads_dental;
--- sample data inserts for dental appointment system
+-- Display the list of ALL Dentists registered in the system, sorted in ascending order of their lastNames
 
-insert into user (username, password, role) values
-                                                ('manager1', 'hash123', 'officemanager'),
-                                                ('dentist1', 'hash234', 'dentist'),
-                                                ('patient1', 'hash345', 'patient');
+SELECT
+    dentist_id,
+    first_name,
+    last_name,
+    phone,
+    email,
+    specialization
+FROM dentist
+ORDER BY last_name ASC;
 
-insert into office_manager (first_name, last_name, phone, email, user_id) values
-    ('Anita', 'Sharma', '555-1111', 'anita.sharma@example.com', 1);
+-- Display the list of ALL Appointments for a given Dentist by their dentist_Id number. Include in the result, the Patient information.
 
-insert into dentist (first_name, last_name, phone, email, specialization, user_id) values
-    ('Ravi', 'Kumar', '555-2222', 'ravi.kumar@example.com', 'Orthodontist', 2);
+SELECT
+    a.appointment_id,
+    a.appointment_date,
+    a.appointment_time,
+    a.status AS appointment_status,
+    a.dentist_id,
+    d.first_name AS dentist_first_name,
+    d.last_name AS dentist_last_name,
+    a.patient_id,
+    p.first_name AS patient_first_name,
+    p.last_name AS patient_last_name,
+    p.phone AS patient_phone,
+    p.email AS patient_email,
+    p.address AS patient_address,
+    p.date_of_birth AS patient_dob,
+    a.surgery_id
+FROM appointment a
+         INNER JOIN dentist d ON a.dentist_id = d.dentist_id
+         INNER JOIN patient p ON a.patient_id = p.patient_id
+ORDER BY a.appointment_date DESC, a.appointment_time DESC;
 
-insert into patient (first_name, last_name, phone, email, address, date_of_birth, user_id) values
-    ('Sunil', 'Verma', '555-3333', 'sunil.verma@example.com', '123 Main St', '1995-04-15', 3);
+-- Display the list of ALL Appointments that have been scheduled at a Surgery Location
 
-insert into surgery (name, address, phone) values
-    ('Downtown Dental Clinic', '456 Elm St', '555-4444');
+SELECT
+    a.appointment_id,
+    a.appointment_date,
+    a.appointment_time,
+    a.status AS appointment_status,
+    s.surgery_id,
+    s.name AS surgery_name,
+    s.address AS surgery_address,
+    s.phone AS surgery_phone,
+    d.dentist_id,
+    d.first_name AS dentist_first_name,
+    d.last_name AS dentist_last_name,
+    p.patient_id,
+    p.first_name AS patient_first_name,
+    p.last_name AS patient_last_name
+FROM appointment a
+         INNER JOIN surgery s ON a.surgery_id = s.surgery_id
+         INNER JOIN dentist d ON a.dentist_id = d.dentist_id
+         INNER JOIN patient p ON a.patient_id = p.patient_id
+ORDER BY s.surgery_id, a.appointment_date, a.appointment_time;
 
-insert into appointment (appointment_date, appointment_time, status, dentist_id, patient_id, surgery_id) values
-    ('2025-10-10', '10:00:00', 'booked', 1, 1, 1);
+-- Display the list of the Appointments booked for a given Patient on a given Date.
 
-insert into bill (appointment_id, amount, status, issue_date) values
-    (1, 150.00, 'unpaid', '2025-10-06');
+SELECT
+    a.appointment_id,
+    a.appointment_date,
+    a.appointment_time,
+    a.status AS appointment_status,
+    a.patient_id,
+    p.first_name AS patient_first_name,
+    p.last_name AS patient_last_name,
+    p.phone AS patient_phone,
+    p.email AS patient_email,
+    d.dentist_id,
+    d.first_name AS dentist_first_name,
+    d.last_name AS dentist_last_name,
+    d.specialization AS dentist_specialization,
+    s.surgery_id,
+    s.name AS surgery_name,
+    s.address AS surgery_address
+FROM appointment a
+         INNER JOIN patient p ON a.patient_id = p.patient_id
+         INNER JOIN dentist d ON a.dentist_id = d.dentist_id
+         INNER JOIN surgery s ON a.surgery_id = s.surgery_id
+ORDER BY a.appointment_date, a.appointment_time;
