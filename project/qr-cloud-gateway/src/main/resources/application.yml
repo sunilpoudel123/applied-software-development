@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+
+        - id: authModule
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+
+        - id: paymentModule
+          uri: lb://payment-service
+          predicates:
+            - Path=/payments/**
+
+        - id: walletModule
+          uri: lb://wallet-service
+          predicates:
+            - Path=/wallets/**
+
+        - id: qrModule
+          uri: lb://qr-service
+          predicates:
+            - Path=/qrs/**
+
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eurekaserver1:8761/eureka/, http://eurekaserver2:8762/eureka/
+    register-with-eureka: true
+    fetch-registry: true
