@@ -28,9 +28,11 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet createWallet(UUID userId) {
+    public Wallet createWallet(String username) {
         Wallet wallet = new Wallet();
-        wallet.setUserId(userId);
+        //todo fetch from user log in session
+        wallet.setUserId(UUID.randomUUID());
+        wallet.setUsername(username);
         wallet.setBalance(BigDecimal.ZERO);
         return walletRepository.save(wallet);
     }

@@ -19,7 +19,8 @@ public class Wallet {
 
     @Id
     private UUID id;
-    private UUID userId;              // from Auth service
+    private UUID userId;
+    private String username;// from Auth service
     private BigDecimal balance;
     private LocalDateTime updatedAt;
 

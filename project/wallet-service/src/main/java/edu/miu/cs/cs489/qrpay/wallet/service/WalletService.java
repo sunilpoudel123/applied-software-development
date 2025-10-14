@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface WalletService {
     Wallet getWalletByUser(UUID userId);
-    Wallet createWallet(UUID userId);
+    Wallet createWallet(String username);
     boolean debit(UUID userId, BigDecimal amount, UUID refId);
     boolean credit(UUID userId, BigDecimal amount, UUID refId);
 }
