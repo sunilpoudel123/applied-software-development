@@ -1,4 +1,4 @@
-package edu.miu.cs.cs489.qrpay.authservice.model;
+package edu.miu.cs.cs489.qrpay.authservice.domain;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
@@ -57,10 +57,13 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    private Boolean active;
+
     @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    public void onCreate() {
+        this.id = UUID.randomUUID();
+        this.active = true;
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate

@@ -1,4 +1,4 @@
-package edu.miu.cs.cs489.qrpay.authservice.model;
+package edu.miu.cs.cs489.qrpay.authservice.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
