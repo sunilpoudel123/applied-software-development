@@ -42,6 +42,7 @@ public class WalletController {
     }
 
     @PostMapping("/{userId}/debit")
+    @Operation(summary = "Debit Wallet", description = "Debit a specified amount from the user's wallet")
     public String debit(@PathVariable UUID userId,
                         @RequestParam BigDecimal amount,
                         @RequestParam UUID refId) {
