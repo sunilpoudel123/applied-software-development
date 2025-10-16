@@ -5,10 +5,13 @@ import edu.miu.cs.cs489.qrpay.authservice.dto.AuthResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.LoginRequestDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterRequestDto;
 import edu.miu.cs.cs489.qrpay.authservice.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Endpoints for user registration and login")
 public class AuthController {
 
     private final AuthService authService;
@@ -18,11 +21,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation (summary = "User Registration", description = "Register a new user and return authentication token")
     public AuthResponseDto register(@RequestBody RegisterRequestDto request) {
         return authService.register(request);
     }
 
     @PostMapping("/login")
+    @Operation (summary = "User Login", description = "Authenticate user and return authentication token")
     public AuthResponseDto login(@RequestBody LoginRequestDto request) {
         return authService.login(request);
     }

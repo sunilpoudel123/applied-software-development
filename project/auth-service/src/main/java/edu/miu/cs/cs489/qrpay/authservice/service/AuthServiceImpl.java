@@ -1,55 +1,68 @@
 package edu.miu.cs.cs489.qrpay.authservice.service;
 
+import edu.miu.cs.cs489.qrpay.authservice.domain.Role;
+import edu.miu.cs.cs489.qrpay.authservice.domain.RoleName;
 import edu.miu.cs.cs489.qrpay.authservice.domain.User;
 import edu.miu.cs.cs489.qrpay.authservice.dto.AuthResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.LoginRequestDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterRequestDto;
+import edu.miu.cs.cs489.qrpay.authservice.repository.RoleRepository;
 import edu.miu.cs.cs489.qrpay.authservice.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthServiceImpl(UserRepository userRepository,
+    public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder,
                            JwtService jwtService) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
 
     @Override
     public AuthResponseDto register(RegisterRequestDto request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Username already exists");
         }
 
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
-        user.setRole(UserRole.USER);
+        user.setUsername(request.username());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setEmail(request.email());
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER.name())
+                .orElseThrow(() -> new RuntimeException("Error: Role not found."));
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+        user.setRoles(roles);
 
         User saved = userRepository.save(user);
-        String token = jwtService.generateToken(saved);
+        String token = jwtService.generateAccessToken(saved);
 
         return new AuthResponseDto(saved.getId(), saved.getUsername(), token);
     }
 
     @Override
     public AuthResponseDto login(LoginRequestDto request) {
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
 
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateAccessToken(user);
         return new AuthResponseDto(user.getId(), user.getUsername(), token);
     }
 }

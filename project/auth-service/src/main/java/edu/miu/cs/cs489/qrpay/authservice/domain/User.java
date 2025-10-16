@@ -10,13 +10,15 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true, nullable = false)
@@ -32,10 +34,14 @@ public class User {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    private UserType userType; // CUSTOMER, MERCHANT, ADMIN
+    private UserType userType;
 
     @Enumerated(EnumType.STRING)
-    private UserStatus status; // ACTIVE, INACTIVE, SUSPENDED, PENDING_VERIFICATION
+    private UserStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

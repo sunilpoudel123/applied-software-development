@@ -14,7 +14,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -25,6 +25,24 @@ spring:
       fail-on-empty-beans: false
   main:
     allow-bean-definition-overriding: true
+
+#    Oauth credentials
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+              client-id: ${GOOGLE_CLIENT_ID}
+              client-secret: ${GOOGLE_CLIENT_SECRET}
+              scope:
+                - email
+                - profile
+              redirect-uri: "{baseUrl}/oauth2/callback/google"
+
+jwt:
+ secret: YXNlY3VyZVJBTkRPTWtleWZvcnNlY3JldFNpZ25pbmdlYXN5c3RvY2hhbmdl
+ access-token-expiration: 3600000 # 1 hour
+ refresh-token-expiration: 86400000 # 24 hours
 
 logging:
   level:
