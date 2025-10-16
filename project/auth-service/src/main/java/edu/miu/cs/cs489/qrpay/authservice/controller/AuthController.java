@@ -8,10 +8,12 @@ import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Endpoints for user registration and login")
@@ -34,7 +36,9 @@ public class AuthController {
     @PostMapping("/login")
     @Operation (summary = "User Login", description = "Authenticate user and return authentication token")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto request) {
+        log.info("Login attempt for user: {}", request.username());
         AuthResponseDto response = authService.login(request);
+        log.info("login successful for user: {}", response.getUserId());
         return ResponseEntity.ok(response);
     }
 }

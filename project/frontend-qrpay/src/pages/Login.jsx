@@ -1,13 +1,20 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { QrCode, Mail, Lock, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+
     const [formData, setFormData] = useState({
-        email: '',
+        username: '',
         password: '',
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -22,16 +29,41 @@ export default function Login() {
         setError('');
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            if (formData.email && formData.password) {
-                alert('Login successful! Redirecting to dashboard...');
-                // In real app: navigate to dashboard
-            } else {
-                setError('Please fill in all fields.');
-            }
+        // Validate form
+        if (!formData.username || !formData.password) {
+            setError('Please enter both username and password');
             setLoading(false);
-        }, 1000);
+            return;
+        }
+
+        try {
+            // Use the login function from AuthContext
+            const result = await login({
+                username: formData.username,
+                password: formData.password,
+            });
+
+            if (result.success) {
+                // Store remember me preference
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                }
+
+                // Clear form
+                setFormData({ username: '', password: '' });
+
+                // Redirect to dashboard
+                navigate('/dashboard', { replace: true });
+            } else {
+                // Show error from auth service
+                setError(result.error);
+            }
+        } catch (err) {
+            setError('An unexpected error occurred. Please try again.');
+            console.error('Login error:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -54,20 +86,21 @@ export default function Login() {
                         </div>
                     )}
 
-                    <div className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Email Address
+                                Username
                             </label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
+                                    type="text"
+                                    name="username"
+                                    value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="you@example.com"
+                                    placeholder="Enter your username"
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    required
                                 />
                             </div>
                         </div>
@@ -85,6 +118,7 @@ export default function Login() {
                                     onChange={handleChange}
                                     placeholder="Enter your password"
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    required
                                 />
                             </div>
                         </div>
@@ -93,30 +127,36 @@ export default function Login() {
                             <label className="flex items-center">
                                 <input
                                     type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                 />
                                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
                             </label>
-                            <button className="text-sm text-blue-600 hover:text-blue-700 font-semibold">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/forgot-password')}
+                                className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                            >
                                 Forgot password?
                             </button>
                         </div>
 
                         <button
-                            onClick={handleSubmit}
+                            type="submit"
                             disabled={loading}
                             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Signing in...
-                </span>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Signing in...
+                                </span>
                             ) : (
                                 'Sign In'
                             )}
                         </button>
-                    </div>
+                    </form>
 
                     <div className="mt-6 relative">
                         <div className="absolute inset-0 flex items-center">
@@ -128,16 +168,22 @@ export default function Login() {
                     </div>
 
                     <div className="mt-6 text-center">
-                        <a href="/register" className="text-blue-600 hover:text-blue-700 font-semibold">
+                        <button
+                            onClick={() => navigate('/register')}
+                            className="text-blue-600 hover:text-blue-700 font-semibold"
+                        >
                             Create a new account
-                        </a>
+                        </button>
                     </div>
                 </div>
 
                 <div className="mt-6 text-center">
-                    <a href="/" className="text-gray-600 hover:text-gray-800 text-sm">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="text-gray-600 hover:text-gray-800 text-sm"
+                    >
                         ← Back to Homepage
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>

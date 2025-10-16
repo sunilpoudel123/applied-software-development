@@ -13,11 +13,12 @@ import NotFound from './pages/NotFound';
 
 // Layout Components
 import DashboardLayout from './components/layout/DashboardLayout';
+import {AuthProvider} from "./context/AuthContext";
 
 function App() {
     return (
         <Router>
-            <PaymentProvider>
+            <AuthProvider>
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<Homepage />} />
@@ -33,7 +34,7 @@ function App() {
                     <Route path="/not-found" element={<NotFound />} />
                     <Route path="*" element={<Navigate to="/not-found" replace />} />
                 </Routes>
-            </PaymentProvider>
+            </AuthProvider>
         </Router>
     );
 }
