@@ -240,16 +240,16 @@ export default function Register() {
                     </div>
 
                     <div className="mt-6 text-center">
-                        <button className="text-blue-600 hover:text-blue-700 font-semibold">
+                        <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
                             Sign in instead
-                        </button>
+                        </a>
                     </div>
                 </div>
 
                 <div className="mt-6 text-center">
-                    <button className="text-gray-600 hover:text-gray-800 text-sm">
+                    <a href="/" className="text-gray-600 hover:text-gray-800 text-sm">
                         ← Back to Homepage
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

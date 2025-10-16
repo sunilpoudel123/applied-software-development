@@ -67,7 +67,6 @@ public class User {
 
     @PrePersist
     public void onCreate() {
-        this.id = UUID.randomUUID();
         this.active = true;
         this.createdAt = LocalDateTime.now();
     }

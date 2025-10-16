@@ -1,13 +1,12 @@
 package edu.miu.cs.cs489.qrpay.authservice.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role {
@@ -17,7 +16,16 @@ public class Role {
 
     @Enumerated(EnumType.STRING)
     @Column(unique = true, nullable = false)
-    private RoleName name; // ROLE_USER, ROLE_MERCHANT, ROLE_ADMIN
+    private RoleName roleName;
 
     private String description;
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "id=" + id +
+                ", roleName=" + roleName +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }

@@ -6,13 +6,16 @@ import edu.miu.cs.cs489.qrpay.authservice.domain.User;
 import edu.miu.cs.cs489.qrpay.authservice.dto.AuthResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.LoginRequestDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterRequestDto;
+import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.repository.RoleRepository;
 import edu.miu.cs.cs489.qrpay.authservice.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -22,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Autowired
     public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder,
                            JwtService jwtService) {
@@ -32,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponseDto register(RegisterRequestDto request) {
+    public RegisterResponseDto register(RegisterRequestDto request) {
         if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Username already exists");
         }
@@ -41,16 +45,25 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEmail(request.email());
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER.name())
+        System.out.println(roleRepository.findAll());
+        Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Error: Role not found."));
         Set<Role> roles = new HashSet<>();
         roles.add(userRole);
         user.setRoles(roles);
 
         User saved = userRepository.save(user);
-        String token = jwtService.generateAccessToken(saved);
 
-        return new AuthResponseDto(saved.getId(), saved.getUsername(), token);
+        Set<String> roleNames = saved.getRoles().stream()
+                .map(role -> role.getRoleName().name())
+                .collect(Collectors.toSet());
+
+        return new RegisterResponseDto(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getEmail(),
+                roleNames
+        );
     }
 
     @Override

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/globals.css';
 import { QrCode, Zap, Shield, TrendingUp, Menu, X, ArrowRight, CheckCircle, Smartphone, CreditCard } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 export default function Homepage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,13 +18,13 @@ export default function Homepage() {
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8">
-                            <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
                             <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
-                            <a href="#pricing" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
-                            <button className="px-4 py-2 text-blue-600 hover:text-blue-700 transition">Sign In</button>
-                            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <Link to="/login" className="px-4 py-2 text-blue-600 hover:text-blue-700 transition">
+                                Sign In
+                            </Link>
+                            <a href="/register" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                 Get Started
-                            </button>
+                            </a>
                         </div>
 
                         <button
@@ -38,11 +39,9 @@ export default function Homepage() {
                 {mobileMenuOpen && (
                     <div className="md:hidden bg-white border-t">
                         <div className="px-4 py-4 space-y-3">
-                            <a href="#features" className="block text-gray-700 hover:text-blue-600">Features</a>
                             <a href="#how-it-works" className="block text-gray-700 hover:text-blue-600">How It Works</a>
-                            <a href="#pricing" className="block text-gray-700 hover:text-blue-600">Pricing</a>
-                            <button className="w-full text-left text-blue-600">Sign In</button>
-                            <button className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg">Get Started</button>
+                            <a href="/login" className="block w-full text-left text-blue-600">Sign In</a>
+                            <a href="/register" className="block w-full px-6 py-2 bg-blue-600 text-white rounded-lg">Get Started</a>
                         </div>
                     </div>
                 )}
@@ -63,10 +62,10 @@ export default function Homepage() {
                                 Fast, secure, and contactless payments for modern businesses. Set up in minutes and start accepting payments today.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <button className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 text-lg font-semibold">
+                                <a href="/register" className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 text-lg font-semibold">
                                     <span>Start Free</span>
                                     <ArrowRight className="w-5 h-5" />
-                                </button>
+                                </a>
                             </div>
                             <div className="mt-8 flex items-center space-x-6 text-sm text-gray-600">
                                 <div className="flex items-center space-x-2">
@@ -129,10 +128,6 @@ export default function Homepage() {
                         </div>
                     </div>
                 </div>
-            </section>
-
-            {/* CTA Section */}
-            <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
             </section>
 
             {/* Footer */}
