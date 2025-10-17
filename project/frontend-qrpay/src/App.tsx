@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 // Layout Components
 import DashboardLayout from './components/layout/DashboardLayout';
 import {AuthProvider} from "./context/AuthContext";
+import Wallets from "./components/dashboard/Wallets";
 
 function App() {
     return (
@@ -29,6 +30,8 @@ function App() {
                     <Route element={<DashboardLayout />}>
                         <Route path="/dashboard" element={<Dashboard />} />
                     </Route>
+
+                    <Route path="/dashboard/wallets" element={<Wallets />} />
 
                     {/* 404 Not Found */}
                     <Route path="/not-found" element={<NotFound />} />

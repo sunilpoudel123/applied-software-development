@@ -34,9 +34,9 @@ spring:
 server:
   port: 8080
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eurekaserver1:8761/eureka/, http://eurekaserver2:8762/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://eurekaserver1:8761/eureka/, http://eurekaserver2:8762/eureka/
+#    register-with-eureka: true
+#    fetch-registry: true

@@ -42,6 +42,11 @@ export default function DashboardLayout() {
             icon: CreditCard,
         },
         {
+            name: 'Wallets',
+            path: '/dashboard/wallets',
+            icon: Wallet,
+        },
+        {
             name: 'QR Scanner',
             path: '/dashboard/qr-scanner',
             icon: QrCode,
