@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import edu.miu.cs.cs489.qrpay.authservice.filter.JwtAuthFilter;
+import edu.miu.cs.cs489.qrpay.authservice.repository.UserRepository;
 import edu.miu.cs.cs489.qrpay.authservice.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -47,6 +50,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -57,10 +61,14 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/api/auth/**"
+            "/api/auth/**",
+            "/login",
+            "/register"
     };
 
     private final JwtService jwtService;
+
+    private final UserRepository userRepository;
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
@@ -99,23 +107,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    @Order(2)
-//    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-//        http.authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(WHITE_LIST_URLS).permitAll()
-//                        .anyRequest().authenticated())
-//                .formLogin(Customizer.withDefaults());
-//        return http.build();
-//    }
-
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/auth/login", "/api/auth/register")
+                        .requestMatchers(WHITE_LIST_URLS)
                         .permitAll()
                         .anyRequest().authenticated()
                 )
@@ -169,24 +167,17 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder().encode("password"))
-                .roles("USER")
-                .build();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("USER", "ADMIN")
-                .build();
-
-        UserDetails merchant = User.builder()
-                .username("merchant")
-                .password(passwordEncoder().encode("merchant"))
-                .roles("USER", "MERCHANT")
-                .build();
-        return new InMemoryUserDetailsManager(user, admin, merchant);
+        return username -> userRepository.findByUsername(username)
+                .map(user -> User.builder()
+                        .username(user.getUsername())
+                        .password(user.getPassword())
+                        .authorities(
+                                user.getRoles().stream()
+                                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
+                                        .collect(Collectors.toList())
+                        )
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     @Bean
@@ -229,18 +220,5 @@ public class SecurityConfig {
         return AuthorizationServerSettings.builder()
                 .issuer("http://localhost:9000")
                 .build();
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }

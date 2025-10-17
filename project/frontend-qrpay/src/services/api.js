@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Base API URL - change this to your backend URL
-const BASE_URL = 'http://localhost:8084/api';
+const BASE_URL = 'http://localhost:8080/api';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -93,9 +93,9 @@ export const endpoints = {
     refreshToken: '/auth/refresh',
 
     // User endpoints
-    userProfile: '/users/profile',
-    updateProfile: '/users/profile',
-    changePassword: '/users/change-password',
+    userProfile: '/auth/users/profile',
+    updateProfile: '/auth/users/profile',
+    changePassword: '/auth/users/change-password',
 
     // Dashboard endpoints
     dashboardStats: '/dashboard/stats',

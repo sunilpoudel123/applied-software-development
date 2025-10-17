@@ -7,6 +7,17 @@ import jakarta.validation.constraints.Size;
 
 public record RegisterRequestDto(
 
+        @NotBlank(message = "First name is required.")
+        @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters.")
+        String firstName,
+
+        @NotBlank(message = "Last name is required.")
+        @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters.")
+        String lastName,
+
+        @Size(max = 100, message = "Business name cannot exceed 100 characters.")
+        String businessName,
+
         @NotBlank(message = "Username is required.")
         @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters.")
         String username,
@@ -24,6 +35,7 @@ public record RegisterRequestDto(
         String phoneNumber,
 
         String roleName
+
 ) {
 
 }

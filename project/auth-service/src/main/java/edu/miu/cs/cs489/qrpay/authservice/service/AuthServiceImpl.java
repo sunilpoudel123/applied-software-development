@@ -3,6 +3,7 @@ package edu.miu.cs.cs489.qrpay.authservice.service;
 import edu.miu.cs.cs489.qrpay.authservice.domain.Role;
 import edu.miu.cs.cs489.qrpay.authservice.domain.RoleName;
 import edu.miu.cs.cs489.qrpay.authservice.domain.User;
+import edu.miu.cs.cs489.qrpay.authservice.domain.UserType;
 import edu.miu.cs.cs489.qrpay.authservice.dto.AuthResponseDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.LoginRequestDto;
 import edu.miu.cs.cs489.qrpay.authservice.dto.RegisterRequestDto;
@@ -43,15 +44,19 @@ public class AuthServiceImpl implements AuthService {
 
         User user = new User();
         user.setUsername(request.username());
+        user.setFirstName( request.firstName());
+        user.setLastName(request.lastName());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEmail(request.email());
         System.out.println(roleRepository.findAll());
-        Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
+        Role userRole = roleRepository.findByRoleName(RoleName.ROLE_MERCHANT)
                 .orElseThrow(() -> new RuntimeException("Error: Role not found."));
         Set<Role> roles = new HashSet<>();
         roles.add(userRole);
         user.setRoles(roles);
-
+        user.setActive(true);
+        user.setPhoneNumber(request.phoneNumber());
+        user.setUserType( UserType.MERCHANT);
         User saved = userRepository.save(user);
 
         Set<String> roleNames = saved.getRoles().stream()
@@ -76,6 +81,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String token = jwtService.generateAccessToken(user);
-        return new AuthResponseDto(user.getId(), user.getUsername(), token);
+        return new AuthResponseDto(user.getId(), user.getUsername(), token, user.getFirstName(), user.getLastName());
     }
 }

@@ -1,16 +1,26 @@
+// src/pages/Register.jsx
 import React, { useState } from 'react';
-import { QrCode, Mail, Lock, User, Building, AlertCircle, CheckCircle } from 'lucide-react';
+import {QrCode, Mail, Lock, User, Building, AlertCircle, Phone} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {useAuth} from "../context/AuthContext";
 
 export default function Register() {
+    const navigate = useNavigate();
+    const { register } = useAuth();
+
     const [formData, setFormData] = useState({
-        fullName: '',
+        firstName: '',
+        lastName: '',
         email: '',
+        username: '',
+        phoneNumber: '',
         businessName: '',
         password: '',
         confirmPassword: '',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [generalError, setGeneralError] = useState('');
 
     const handleChange = (e) => {
         setFormData({
@@ -23,13 +33,20 @@ export default function Register() {
                 [e.target.name]: '',
             });
         }
+        if (generalError) {
+            setGeneralError('');
+        }
     };
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.fullName.trim()) {
-            newErrors.fullName = 'Full name is required';
+        if (!formData.firstName.trim()) {
+            newErrors.firstName = 'First name is required';
+        }
+
+        if (!formData.lastName.trim()) {
+            newErrors.lastName = 'Last name is required';
         }
 
         if (!formData.email.trim()) {
@@ -40,6 +57,10 @@ export default function Register() {
 
         if (!formData.businessName.trim()) {
             newErrors.businessName = 'Business name is required';
+        }
+
+        if (!formData.phoneNumber.trim()) {
+            newErrors.phoneNumber = 'Phone number is required';
         }
 
         if (!formData.password) {
@@ -66,11 +87,44 @@ export default function Register() {
 
         setLoading(true);
         setErrors({});
+        setGeneralError('');
 
-        setTimeout(() => {
-            alert('Registration successful! Redirecting to dashboard...');
+        try {
+            const result = await register({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                username: formData.email,
+                phoneNumber: formData.phoneNumber,
+                businessName: formData.businessName,
+                password: formData.password,
+            });
+
+            if (result.success) {
+                // Clear form
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    username: '',
+                    phoneNumber: '',
+                    businessName: '',
+                    password: '',
+                    confirmPassword: '',
+                });
+
+                // Redirect to login page
+                navigate('/login', { replace: true });
+            } else {
+                // Show registration error
+                setGeneralError(result.error || 'Registration failed');
+            }
+        } catch (err) {
+            setGeneralError('An error occurred during registration. Please try again.');
+            console.error('Registration error:', err);
+        } finally {
             setLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -86,27 +140,60 @@ export default function Register() {
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <div className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Full Name
-                            </label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    placeholder="John Doe"
-                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
-                                        errors.fullName ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                />
+                    {generalError && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-800">{generalError}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    First Name
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        placeholder="John"
+                                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                                            errors.firstName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        required
+                                    />
+                                </div>
+                                {errors.firstName && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                                )}
                             </div>
-                            {errors.fullName && (
-                                <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
-                            )}
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Last Name
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        placeholder="Doe"
+                                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                                            errors.lastName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        required
+                                    />
+                                </div>
+                                {errors.lastName && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                                )}
+                            </div>
                         </div>
 
                         <div>
@@ -124,10 +211,33 @@ export default function Register() {
                                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                                         errors.email ? 'border-red-500' : 'border-gray-300'
                                     }`}
+                                    required
                                 />
                             </div>
                             {errors.email && (
                                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Phone Number
+                            </label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleChange}
+                                    placeholder="+1 (555) 123-4567"
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                                        errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                            </div>
+                            {errors.phoneNumber && (
+                                <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>
                             )}
                         </div>
 
@@ -146,6 +256,7 @@ export default function Register() {
                                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                                         errors.businessName ? 'border-red-500' : 'border-gray-300'
                                     }`}
+                                    required
                                 />
                             </div>
                             {errors.businessName && (
@@ -168,6 +279,7 @@ export default function Register() {
                                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                                         errors.password ? 'border-red-500' : 'border-gray-300'
                                     }`}
+                                    required
                                 />
                             </div>
                             {errors.password && (
@@ -190,6 +302,7 @@ export default function Register() {
                                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                                         errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                                     }`}
+                                    required
                                 />
                             </div>
                             {errors.confirmPassword && (
@@ -200,35 +313,36 @@ export default function Register() {
                         <div className="flex items-start">
                             <input
                                 type="checkbox"
+                                required
                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mt-1"
                             />
                             <label className="ml-2 text-sm text-gray-600">
                                 I agree to the{' '}
-                                <button className="text-blue-600 hover:text-blue-700 font-semibold">
+                                <button type="button" className="text-blue-600 hover:text-blue-700 font-semibold">
                                     Terms of Service
                                 </button>{' '}
                                 and{' '}
-                                <button className="text-blue-600 hover:text-blue-700 font-semibold">
+                                <button type="button" className="text-blue-600 hover:text-blue-700 font-semibold">
                                     Privacy Policy
                                 </button>
                             </label>
                         </div>
 
                         <button
-                            onClick={handleSubmit}
+                            type="submit"
                             disabled={loading}
                             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Creating Account...
-                </span>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Creating Account...
+                                </span>
                             ) : (
                                 'Create Account'
                             )}
                         </button>
-                    </div>
+                    </form>
 
                     <div className="mt-6 relative">
                         <div className="absolute inset-0 flex items-center">
@@ -240,16 +354,22 @@ export default function Register() {
                     </div>
 
                     <div className="mt-6 text-center">
-                        <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="text-blue-600 hover:text-blue-700 font-semibold"
+                        >
                             Sign in instead
-                        </a>
+                        </button>
                     </div>
                 </div>
 
                 <div className="mt-6 text-center">
-                    <a href="/" className="text-gray-600 hover:text-gray-800 text-sm">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="text-gray-600 hover:text-gray-800 text-sm"
+                    >
                         ← Back to Homepage
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>

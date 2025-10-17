@@ -25,6 +25,12 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(unique = false, nullable = false)
+    private String firstName;
+
+    @Column(unique = false, nullable = false)
+    private String lastName;
+
     @Column(unique = true, nullable = false)
     private String email;
 
