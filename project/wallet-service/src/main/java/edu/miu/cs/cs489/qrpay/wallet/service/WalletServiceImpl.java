@@ -10,7 +10,9 @@ import edu.miu.cs.cs489.qrpay.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,27 +27,36 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public WalletResponseDTO getWalletByUser() {
-        Wallet wallet = getWallet();
-        return toWalletResponseDTO(wallet);
+    public List<WalletResponseDTO> getWalletByUser(UUID userId) {
+        List<Wallet> wallets = getWalletByUserId(userId);
+        return wallets.stream()
+                .map(this::toWalletResponseDTO)
+                .collect(Collectors.toList());
     }
+
     private UUID getUserIdFromAuthContext(){
         //todo fetch from user log in session
 //        return UUID.randomUUID();
         return UUID.fromString("A8D37798-3BD1-42C6-8D80-E14F311AA5DA");
     }
 
-    private Wallet getWallet() {
-        Wallet wallet= walletRepository.findByUserId(getUserIdFromAuthContext())
-               .orElseThrow(() -> new RuntimeException("Wallet not found for user: "
-                       + getUserIdFromAuthContext()));
-        return wallet;
+    private List<Wallet> getWalletByUserId(UUID userId) {
+        List<Wallet> wallets = walletRepository.findByUserId(userId);
+        if (wallets == null || wallets.isEmpty()) {
+            throw new RuntimeException("Wallet not found for user: " + userId);
+        }
+        return wallets;
+    }
+
+    private Wallet getWalletById(UUID walletId) {
+        return walletRepository.findById(walletId)
+                .orElseThrow(() -> new RuntimeException("Wallet not found with id: " + walletId));
     }
 
     @Override
     public WalletResponseDTO createWallet(WalletRequestDTO walletDTO) {
         Wallet wallet = new Wallet();
-        wallet.setUserId(getUserIdFromAuthContext());
+        wallet.setUserId(walletDTO.getUserId());
         wallet.setWalletName(walletDTO.getWalletName());
         wallet.setCurrency(walletDTO.getCurrency());
         wallet.setBalance(walletDTO.getBalance());
@@ -56,7 +67,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public WalletTransactionResponseDTO debit(WalletTransactionRequestDTO transactionDTO) {
-        Wallet wallet = getWallet();
+        Wallet wallet = getWalletById(transactionDTO.getWalletId());
         if (wallet.getBalance().compareTo(transactionDTO.getAmount()) < 0)
             throw new RuntimeException("Insufficient balance");
 
@@ -85,7 +96,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public WalletTransactionResponseDTO credit(WalletTransactionRequestDTO transactionRequestDTO) {
-        Wallet wallet = getWallet();
+        Wallet wallet = getWalletById(transactionRequestDTO.getWalletId());
         wallet.setBalance(wallet.getBalance().add(transactionRequestDTO.getAmount()));
         walletRepository.save(wallet);
         WalletTransaction transaction = transactionService.recordTransaction(transactionRequestDTO);
@@ -94,7 +105,7 @@ public class WalletServiceImpl implements WalletService {
         return response;
     }
 
-    public WalletResponseDTO toWalletResponseDTO( Wallet wallet) {
+    public WalletResponseDTO toWalletResponseDTO(Wallet wallet) {
         WalletResponseDTO dto = new WalletResponseDTO();
         dto.setId(wallet.getId());
         dto.setUserId(wallet.getUserId());

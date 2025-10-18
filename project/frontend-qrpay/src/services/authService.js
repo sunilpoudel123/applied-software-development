@@ -8,6 +8,7 @@ const authService = {
             const response = await api.post(endpoints.login, credentials);
             if (response.token) {
                 localStorage.setItem('authToken', response.token);
+                localStorage.setItem('userId', response.userId)
                 localStorage.setItem('user', JSON.stringify(response.user));
             }
             return response;
@@ -39,6 +40,7 @@ const authService = {
         } finally {
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
+            localStorage.removeItem('userId');
             window.location.href = '/';
         }
     },

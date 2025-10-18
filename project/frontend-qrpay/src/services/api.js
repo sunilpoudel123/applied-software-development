@@ -43,6 +43,7 @@ apiClient.interceptors.response.use(
                 case 401:
                     // Unauthorized - clear auth data and redirect to login
                     localStorage.removeItem('authToken');
+                    localStorage.removeItem('userId');
                     localStorage.removeItem('user');
                     window.location.href = '/login';
                     break;
@@ -102,9 +103,13 @@ export const endpoints = {
     recentTransactions: '/dashboard/transactions/recent',
     revenueData: '/dashboard/revenue',
 
+    wallets: '/wallets',
+    debit: '/wallets/debit',
+    credit: '/wallets/credit',
+
     // Transaction endpoints
-    transactions: '/transactions',
-    transactionById: (id) => `/transactions/${id}`,
+    walletTransactionsByUser: 'wallets/transactions/user',
+    walletTransactionById: (id) => `wallets/transactions/transaction/${id}`,
 
     // QR Code endpoints
     generateQR: '/qr/generate',

@@ -16,12 +16,14 @@ public class WalletTransaction {
     @Id
     private UUID id;
     private UUID walletId;
+    private UUID userId;
     private UUID transactionRefId;
     @Enumerated(EnumType.STRING)
     private TransactionType type;
     private BigDecimal amount;
     private LocalDateTime timestamp;
-    private String remarks;
+    private String description;
+    private String status;
 
     @PrePersist
     public void onCreate() {

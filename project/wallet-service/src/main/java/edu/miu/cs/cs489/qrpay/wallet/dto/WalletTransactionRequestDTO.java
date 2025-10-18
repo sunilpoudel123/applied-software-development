@@ -15,4 +15,5 @@ public class WalletTransactionRequestDTO {
     private TransactionType transactionType;
     private UUID walletId;
     private UUID transactionRefId;
+    private UUID userId;
 }

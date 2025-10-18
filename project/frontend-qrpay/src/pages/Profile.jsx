@@ -94,6 +94,23 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 p-6">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <QrCode className="w-8 h-8 text-blue-600" />
+                        <span className="text-2xl font-bold text-gray-900">QRPay</span>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-medium">Logout</span>
+                    </button>
+                </div>
+            </div>
+
             {/* Main Content */}
             <div className="max-w-7xl mx-auto p-6">
                 {/* Welcome Section */}

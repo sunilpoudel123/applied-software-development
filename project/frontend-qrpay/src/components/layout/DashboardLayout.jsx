@@ -1,5 +1,5 @@
 // src/components/layout/DashboardLayout.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -17,13 +17,30 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import api, { endpoints } from '../../services/api';
 
 export default function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [profile, setProfile] = useState(null);
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            const data = await api.get(endpoints.userProfile);
+            setProfile(data.user || data);
+        } catch (err) {
+            console.error('Profile fetch error:', err);
+            // Use auth context user as fallback
+            setProfile(user);
+        }
+    };
 
     const handleLogout = async () => {
         await logout();
@@ -37,24 +54,19 @@ export default function DashboardLayout() {
             icon: LayoutDashboard,
         },
         {
-            name: 'Transactions',
-            path: '/dashboard/transactions',
-            icon: CreditCard,
-        },
-        {
             name: 'Wallets',
             path: '/dashboard/wallets',
             icon: Wallet,
         },
         {
+            name: 'Transactions',
+            path: '/dashboard/wallet-transactions',
+            icon: CreditCard,
+        },
+        {
             name: 'QR Scanner',
             path: '/dashboard/qr-scanner',
             icon: QrCode,
-        },
-        {
-            name: 'Settings',
-            path: '/dashboard/settings',
-            icon: Settings,
         },
     ];
 
@@ -63,6 +75,32 @@ export default function DashboardLayout() {
             return location.pathname === '/dashboard';
         }
         return location.pathname.startsWith(path);
+    };
+
+    // Get display name from profile
+    const getDisplayName = () => {
+        if (!profile) return 'User';
+
+        if (profile.firstName || profile.lastName) {
+            return `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+        }
+
+        return profile.username || 'User';
+    };
+
+    // Get display email
+    const getDisplayEmail = () => {
+        return profile?.email || user?.email || 'user@example.com';
+    };
+
+    // Get initials for avatar
+    const getInitials = () => {
+        const name = getDisplayName();
+        const words = name.split(' ');
+        if (words.length >= 2) {
+            return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase();
+        }
+        return name.charAt(0).toUpperCase();
     };
 
     return (
@@ -108,16 +146,16 @@ export default function DashboardLayout() {
                     <div className="border-t border-gray-200 p-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                                    {user?.fullName?.charAt(0) || 'U'}
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                    {getInitials()}
                                 </div>
                             </div>
-                            <div className="ml-3 flex-1">
-                                <p className="text-sm font-medium text-gray-900">
-                                    {user?.fullName || 'User'}
+                            <div className="ml-3 flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                    {getDisplayName()}
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                    {user?.email || 'user@example.com'}
+                                <p className="text-xs text-gray-500 truncate">
+                                    {getDisplayEmail()}
                                 </p>
                             </div>
                         </div>
@@ -192,16 +230,16 @@ export default function DashboardLayout() {
                             <div className="border-t border-gray-200 p-4">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                                            {user?.fullName?.charAt(0) || 'U'}
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                            {getInitials()}
                                         </div>
                                     </div>
-                                    <div className="ml-3 flex-1">
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {user?.fullName || 'User'}
+                                    <div className="ml-3 flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                            {getDisplayName()}
                                         </p>
-                                        <p className="text-xs text-gray-500">
-                                            {user?.email || 'user@example.com'}
+                                        <p className="text-xs text-gray-500 truncate">
+                                            {getDisplayEmail()}
                                         </p>
                                     </div>
                                 </div>
@@ -230,13 +268,20 @@ export default function DashboardLayout() {
                         <Menu className="h-6 w-6" />
                     </button>
 
-                    {/* Search Bar */}
-                    <div className="flex-1 max-w-md">
+                    {/* Page Title - Shows on larger screens */}
+                    <div className="flex-1 hidden sm:block">
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            {navItems.find(item => isActive(item.path))?.name || 'Dashboard'}
+                        </h2>
+                    </div>
+
+                    {/* Search Bar - Hidden on small screens */}
+                    <div className="hidden md:block flex-1 max-w-md">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
-                                placeholder="Search transactions..."
+                                placeholder="Search..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             />
                         </div>
@@ -245,7 +290,7 @@ export default function DashboardLayout() {
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-3">
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                        <button className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
                             <Bell className="h-5 w-5" />
                             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
@@ -254,48 +299,70 @@ export default function DashboardLayout() {
                         <div className="relative hidden sm:block">
                             <button
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100"
+                                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition"
                             >
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm">
-                                    {user?.fullName?.charAt(0) || 'U'}
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-xs">
+                                    {getInitials()}
                                 </div>
+                                <span className="text-sm font-medium text-gray-700 hidden md:block">
+                                    {getDisplayName().split(' ')[0]}
+                                </span>
                                 <ChevronDown className="w-4 h-4 text-gray-600" />
                             </button>
 
                             {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                                    <Link
-                                        to="/dashboard/settings"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                <>
+                                    {/* Overlay for closing menu */}
+                                    <div
+                                        className="fixed inset-0 z-10"
                                         onClick={() => setUserMenuOpen(false)}
-                                    >
-                                        <User className="w-4 h-4 inline mr-2" />
-                                        Profile
-                                    </Link>
-                                    <Link
-                                        to="/dashboard/settings"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                        onClick={() => setUserMenuOpen(false)}
-                                    >
-                                        <Settings className="w-4 h-4 inline mr-2" />
-                                        Settings
-                                    </Link>
-                                    <hr className="my-1" />
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-                                    >
-                                        <LogOut className="w-4 h-4 inline mr-2" />
-                                        Sign Out
-                                    </button>
-                                </div>
+                                    ></div>
+
+                                    {/* Dropdown Menu */}
+                                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                                        {/* User Info in Dropdown */}
+                                        <div className="px-4 py-3 border-b border-gray-200">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">
+                                                {getDisplayName()}
+                                            </p>
+                                            <p className="text-xs text-gray-500 truncate">
+                                                {getDisplayEmail()}
+                                            </p>
+                                        </div>
+
+                                        <Link
+                                            to="/dashboard"
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                                            onClick={() => setUserMenuOpen(false)}
+                                        >
+                                            <User className="w-4 h-4 inline mr-2" />
+                                            View Profile
+                                        </Link>
+                                        <Link
+                                            to="/dashboard/settings"
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                                            onClick={() => setUserMenuOpen(false)}
+                                        >
+                                            <Settings className="w-4 h-4 inline mr-2" />
+                                            Settings
+                                        </Link>
+                                        <hr className="my-2" />
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                        >
+                                            <LogOut className="w-4 h-4 inline mr-2" />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1">
+                <main className="flex-1 p-6">
                     <Outlet />
                 </main>
             </div>

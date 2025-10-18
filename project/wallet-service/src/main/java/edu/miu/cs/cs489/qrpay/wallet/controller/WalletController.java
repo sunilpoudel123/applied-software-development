@@ -10,8 +10,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
-@RequestMapping("/api/wallets")
 @Tag(name = "Wallet Management", description = "Endpoints for managing user wallets")
 public class WalletController {
 
@@ -21,10 +23,10 @@ public class WalletController {
         this.walletService = walletService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/{userId}")
     @Operation(summary = "Get Wallet", description = "Retrieve wallet details for a user")
-    public ResponseEntity<WalletResponseDTO> getWallet() {
-        WalletResponseDTO wallet = walletService.getWalletByUser();
+    public ResponseEntity<List<WalletResponseDTO>> getWallet(@PathVariable String userId) {
+        List<WalletResponseDTO> wallet = walletService.getWalletByUser(UUID.fromString(userId));
         return ResponseEntity.ok(wallet);
     }
 

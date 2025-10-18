@@ -13,6 +13,7 @@ public class WalletRequestDTO {
     private String walletName;
     private BigDecimal balance;
     private String currency;
+    private UUID userId;
 
     public WalletRequestDTO() {
 
