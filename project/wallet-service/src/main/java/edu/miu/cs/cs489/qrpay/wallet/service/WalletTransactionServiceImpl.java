@@ -2,6 +2,7 @@ package edu.miu.cs.cs489.qrpay.wallet.service;
 
 import edu.miu.cs.cs489.qrpay.wallet.domain.TransactionType;
 import edu.miu.cs.cs489.qrpay.wallet.domain.WalletTransaction;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletTransactionRequestDTO;
 import edu.miu.cs.cs489.qrpay.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +21,14 @@ public class WalletTransactionServiceImpl implements WalletTransactionService {
     }
 
     @Override
-    public void recordTransaction(UUID walletId, UUID refId, TransactionType type, BigDecimal amount, String remarks) {
+    public WalletTransaction recordTransaction(WalletTransactionRequestDTO requestDTO) {
         WalletTransaction transaction = new WalletTransaction();
-        transaction.setWalletId(walletId);
-        transaction.setTransactionRefId(refId);
-        transaction.setType(type);
-        transaction.setAmount(amount);
-        transaction.setRemarks(remarks);
-        transactionRepository.save(transaction);
+        transaction.setWalletId(requestDTO.getWalletId());
+        transaction.setTransactionRefId(requestDTO.getTransactionRefId());
+        transaction.setType(requestDTO.getTransactionType());
+        transaction.setAmount(requestDTO.getAmount());
+        transaction.setRemarks(requestDTO.getDescription());
+        return transactionRepository.save(transaction);
     }
 
     @Override

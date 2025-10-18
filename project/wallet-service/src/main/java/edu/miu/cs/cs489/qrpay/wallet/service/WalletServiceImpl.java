@@ -1,12 +1,15 @@
 package edu.miu.cs.cs489.qrpay.wallet.service;
 
-import edu.miu.cs.cs489.qrpay.wallet.domain.TransactionType;
 import edu.miu.cs.cs489.qrpay.wallet.domain.Wallet;
+import edu.miu.cs.cs489.qrpay.wallet.domain.WalletTransaction;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletRequestDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletResponseDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletTransactionRequestDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletTransactionResponseDTO;
 import edu.miu.cs.cs489.qrpay.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -22,41 +25,82 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet getWalletByUser(UUID userId) {
-        return walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found for user: " + userId));
+    public WalletResponseDTO getWalletByUser() {
+        Wallet wallet = getWallet();
+        return toWalletResponseDTO(wallet);
     }
-
-    @Override
-    public Wallet createWallet(String username) {
-        Wallet wallet = new Wallet();
+    private UUID getUserIdFromAuthContext(){
         //todo fetch from user log in session
-        wallet.setUserId(UUID.randomUUID());
-        wallet.setUsername(username);
-        wallet.setBalance(BigDecimal.ZERO);
-        return walletRepository.save(wallet);
+//        return UUID.randomUUID();
+        return UUID.fromString("A8D37798-3BD1-42C6-8D80-E14F311AA5DA");
+    }
+
+    private Wallet getWallet() {
+        Wallet wallet= walletRepository.findByUserId(getUserIdFromAuthContext())
+               .orElseThrow(() -> new RuntimeException("Wallet not found for user: "
+                       + getUserIdFromAuthContext()));
+        return wallet;
     }
 
     @Override
-    public boolean debit(UUID userId, BigDecimal amount, UUID refId) {
-        Wallet wallet = getWalletByUser(userId);
-        if (wallet.getBalance().compareTo(amount) < 0)
+    public WalletResponseDTO createWallet(WalletRequestDTO walletDTO) {
+        Wallet wallet = new Wallet();
+        wallet.setUserId(getUserIdFromAuthContext());
+        wallet.setWalletName(walletDTO.getWalletName());
+        wallet.setCurrency(walletDTO.getCurrency());
+        wallet.setBalance(walletDTO.getBalance());
+        walletRepository.save(wallet);
+        
+        return toWalletResponseDTO(wallet);
+    }
+
+    @Override
+    public WalletTransactionResponseDTO debit(WalletTransactionRequestDTO transactionDTO) {
+        Wallet wallet = getWallet();
+        if (wallet.getBalance().compareTo(transactionDTO.getAmount()) < 0)
             throw new RuntimeException("Insufficient balance");
 
-        wallet.setBalance(wallet.getBalance().subtract(amount));
+        wallet.setBalance(wallet.getBalance().subtract(transactionDTO.getAmount()));
         walletRepository.save(wallet);
+        WalletTransaction transaction = transactionService.recordTransaction(transactionDTO);
+        WalletTransactionResponseDTO response = getWalletTransactionResponseDTO(transactionDTO, transaction, wallet);
 
-        transactionService.recordTransaction(wallet.getId(), refId, TransactionType.DEBIT, amount, "Debit for payment");
-        return true;
+        return response;
     }
 
-    @Override
-    public boolean credit(UUID userId, BigDecimal amount, UUID refId) {
-        Wallet wallet = getWalletByUser(userId);
-        wallet.setBalance(wallet.getBalance().add(amount));
-        walletRepository.save(wallet);
+    private static WalletTransactionResponseDTO getWalletTransactionResponseDTO(WalletTransactionRequestDTO transactionDTO,
+                                                                                WalletTransaction transaction, Wallet wallet) {
+        WalletTransactionResponseDTO response = new WalletTransactionResponseDTO();
+        response.setTransactionId(transaction.getId());
+        response.setWalletId(wallet.getId());
+        response.setAmount(transactionDTO.getAmount());
+        response.setDescription(transactionDTO.getDescription());
+        response.setTransactionType(transactionDTO.getTransactionType());
+        response.setTransactionRefId(transactionDTO.getTransactionRefId());
+        response.setTimestamp(transaction.getTimestamp());
+        response.setStatus("SUCCESS");
+        return response;
+    }
 
-        transactionService.recordTransaction(wallet.getId(), refId, TransactionType.CREDIT, amount, "Credit from payment");
-        return true;
+
+    @Override
+    public WalletTransactionResponseDTO credit(WalletTransactionRequestDTO transactionRequestDTO) {
+        Wallet wallet = getWallet();
+        wallet.setBalance(wallet.getBalance().add(transactionRequestDTO.getAmount()));
+        walletRepository.save(wallet);
+        WalletTransaction transaction = transactionService.recordTransaction(transactionRequestDTO);
+        WalletTransactionResponseDTO response = getWalletTransactionResponseDTO(transactionRequestDTO, transaction, wallet);
+
+        return response;
+    }
+
+    public WalletResponseDTO toWalletResponseDTO( Wallet wallet) {
+        WalletResponseDTO dto = new WalletResponseDTO();
+        dto.setId(wallet.getId());
+        dto.setUserId(wallet.getUserId());
+        dto.setWalletName(wallet.getWalletName());
+        dto.setCurrency(wallet.getCurrency());
+        dto.setBalance(wallet.getBalance());
+        return dto;
     }
 }

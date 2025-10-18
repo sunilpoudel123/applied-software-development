@@ -20,7 +20,8 @@ public class Wallet {
     @Id
     private UUID id;
     private UUID userId;
-    private String username;// from Auth service
+    private String walletName;
+    private String currency;
     private BigDecimal balance;
     private LocalDateTime updatedAt;
 

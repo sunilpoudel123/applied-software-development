@@ -1,13 +1,14 @@
 package edu.miu.cs.cs489.qrpay.wallet.controller;
 
-import edu.miu.cs.cs489.qrpay.wallet.domain.Wallet;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletRequestDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletResponseDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletTransactionRequestDTO;
+import edu.miu.cs.cs489.qrpay.wallet.dto.WalletTransactionResponseDTO;
 import edu.miu.cs.cs489.qrpay.wallet.service.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -20,34 +21,32 @@ public class WalletController {
         this.walletService = walletService;
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/")
     @Operation(summary = "Get Wallet", description = "Retrieve wallet details for a user")
-    public Wallet getWallet(@PathVariable UUID userId) {
-        return walletService.getWalletByUser(userId);
+    public ResponseEntity<WalletResponseDTO> getWallet() {
+        WalletResponseDTO wallet = walletService.getWalletByUser();
+        return ResponseEntity.ok(wallet);
     }
 
-    @PostMapping("/{username}/create")
+    @PostMapping("/create")
     @Operation(summary = "Create Wallet", description = "Create a new wallet for a user")
-    public Wallet createWallet(@PathVariable String username) {
-        return walletService.createWallet(username);
+    public ResponseEntity<WalletResponseDTO> createWallet(@RequestBody WalletRequestDTO requestDTO) {
+        WalletResponseDTO wallet = walletService.createWallet(requestDTO);
+        return ResponseEntity.ok(wallet);
     }
 
-    @PostMapping("/{userId}/credit")
+    @PostMapping("/credit")
     @Operation(summary = "Credit Wallet", description = "Credit a specified amount to the user's wallet")
-    public String credit(@PathVariable UUID userId,
-                         @RequestParam BigDecimal amount,
-                         @RequestParam UUID refId) {
-        walletService.credit(userId, amount, refId);
-        return "Wallet credited successfully";
+    public ResponseEntity<WalletTransactionResponseDTO> credit(@RequestBody WalletTransactionRequestDTO requestDTO) {
+        WalletTransactionResponseDTO walletTransactionResponseDTO = walletService.credit(requestDTO);
+        return ResponseEntity.ok(walletTransactionResponseDTO);
     }
 
-    @PostMapping("/{userId}/debit")
+    @PostMapping("/debit")
     @Operation(summary = "Debit Wallet", description = "Debit a specified amount from the user's wallet")
-    public String debit(@PathVariable UUID userId,
-                        @RequestParam BigDecimal amount,
-                        @RequestParam UUID refId) {
-        walletService.debit(userId, amount, refId);
-        return "Wallet debited successfully";
+    public ResponseEntity<WalletTransactionResponseDTO> debit(@RequestBody WalletTransactionRequestDTO requestDTO) {
+        WalletTransactionResponseDTO walletTransactionResponseDTO = walletService.debit(requestDTO);
+        return ResponseEntity.ok(walletTransactionResponseDTO);
     }
 
 }
