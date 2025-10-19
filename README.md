@@ -26,3 +26,14 @@ This repository contains materials, labs, and project work developed during the 
   Databases: MySQL, MongoDB
   DevOps Tools: Git, Jenkins, Docker, Kubernetes
   Cloud: AWS (EC2, S3, RDS, Lambda)
+
+
+# Build images locally
+docker-compose build
+
+# Start
+docker-compose down -v
+docker-compose up --build
+
+# Tail logs
+docker-compose logs -f user-service
