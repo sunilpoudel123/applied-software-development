@@ -14,7 +14,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
@@ -104,11 +103,6 @@ public class JwtServiceImpl implements JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Long.class));
-    }
-
-
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -125,30 +119,6 @@ public class JwtServiceImpl implements JwtService {
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public long getAccessTokenExpiration() {
-        return accessTokenExpiration / 1000; // Return in seconds
-    }
-
-    // Token blacklist management (for logout)
-    public void invalidateToken(String token) {
-        try {
-            Claims claims = extractAllClaims(token);
-            Date expiration = claims.getExpiration();
-            long ttl = expiration.getTime() - System.currentTimeMillis();
-
-            if (ttl > 0) {
-                redisTemplate.opsForValue().set(
-                        "blacklist:" + token,
-                        "true",
-                        ttl,
-                        TimeUnit.MILLISECONDS
-                );
-            }
-        } catch (Exception e) {
-            // Token already invalid, no need to blacklist
-        }
     }
 
     private boolean isTokenBlacklisted(String token) {
