@@ -1,0 +1,139 @@
+name: Deploy QR Payment System to ECS Fargate
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_ACCOUNT_ID: 209466560852
+  AWS_REGION: us-east-1
+  CLUSTER_NAME: my-qr-payment-system-fargate
+  SUBNETS: subnet-0fcc91bc7f44017ff,subnet-04762276b2062a4df
+  SECURITY_GROUP: sg-0ab1500039f365dd8
+  EXECUTION_ROLE_ARN: arn:aws:iam::209466560852:role/ecsTaskExecutionRole
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ECS Fargate
+    runs-on: ubuntu-latest
+    environment: production
+
+    strategy:
+      matrix:
+        service:
+          - name: auth-service
+            dockerfile_path: ./auth-service
+            port: 8081
+          - name: wallet-service
+            dockerfile_path: ./wallet-service
+            port: 8082
+          - name: api-gateway
+            dockerfile_path: ./qr-cloud-gateway
+            port: 8080
+          - name: mysql-db-init
+            dockerfile_path: ./database
+            port: 3306
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Create ECR repository if not exists
+      run: |
+        aws ecr create-repository \
+          --repository-name ${{ matrix.service.name }} \
+          --region ${{ env.AWS_REGION }} 2>/dev/null || echo "Repository already exists"
+
+    - name: Build, tag, and push image to ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t ${{ matrix.service.name }}:latest ${{ matrix.service.dockerfile_path }}
+        docker tag ${{ matrix.service.name }}:latest $ECR_REGISTRY/${{ matrix.service.name }}:latest
+        docker tag ${{ matrix.service.name }}:latest $ECR_REGISTRY/${{ matrix.service.name }}:$IMAGE_TAG
+        docker push $ECR_REGISTRY/${{ matrix.service.name }}:latest
+        docker push $ECR_REGISTRY/${{ matrix.service.name }}:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/${{ matrix.service.name }}:latest" >> $GITHUB_OUTPUT
+
+    - name: Register ECS task definition
+      id: task-def
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        aws ecs register-task-definition \
+          --family ${{ matrix.service.name }} \
+          --network-mode awsvpc \
+          --requires-compatibilities FARGATE \
+          --cpu "256" \
+          --memory "512" \
+          --execution-role-arn ${{ env.EXECUTION_ROLE_ARN }} \
+          --region ${{ env.AWS_REGION }} \
+          --container-definitions "[
+            {
+              \"name\": \"${{ matrix.service.name }}\",
+              \"image\": \"${{ steps.build-image.outputs.image }}\",
+              \"essential\": true,
+              \"portMappings\": [
+                {
+                  \"containerPort\": ${{ matrix.service.port }},
+                  \"protocol\": \"tcp\"
+                }
+              ]
+            }
+          ]"
+
+    - name: Check if service exists
+      id: check-service
+      continue-on-error: true
+      run: |
+        aws ecs describe-services \
+          --cluster ${{ env.CLUSTER_NAME }} \
+          --services ${{ matrix.service.name }} \
+          --region ${{ env.AWS_REGION }} \
+          --query 'services[0].serviceName' \
+          --output text | grep -q ${{ matrix.service.name }}
+
+    - name: Create or update ECS service
+      run: |
+        if [ ${{ steps.check-service.outcome }} = "failure" ]; then
+          echo "Creating service: ${{ matrix.service.name }}"
+          aws ecs create-service \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service-name ${{ matrix.service.name }} \
+            --task-definition ${{ matrix.service.name }} \
+            --desired-count 1 \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ env.SUBNETS }}],securityGroups=[${{ env.SECURITY_GROUP }}],assignPublicIp=ENABLED}" \
+            --region ${{ env.AWS_REGION }}
+        else
+          echo "Updating service: ${{ matrix.service.name }}"
+          aws ecs update-service \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service ${{ matrix.service.name }} \
+            --task-definition ${{ matrix.service.name }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+        fi
+
+    - name: Wait for service stability
+      run: |
+        aws ecs wait services-stable \
+          --cluster ${{ env.CLUSTER_NAME }} \
+          --services ${{ matrix.service.name }} \
+          --region ${{ env.AWS_REGION }}
