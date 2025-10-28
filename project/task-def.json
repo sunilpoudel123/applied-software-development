@@ -1,0 +1,53 @@
+{
+  "family": "qr-payment-system-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::209466560852:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::209466560852:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "mysql-db",
+      "image": "209466560852.dkr.ecr.us-east-1.amazonaws.com/mysql-db-init:latest",
+      "essential": true,
+      "environment": [
+        { "name": "MYSQL_ROOT_PASSWORD", "value": "root" },
+        { "name": "MYSQL_USER", "value": "walletuser" },
+        { "name": "MYSQL_PASSWORD", "value": "walletpass" }
+      ],
+      "portMappings": [ { "containerPort": 3306, "protocol": "tcp" } ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "mysqladmin ping -h localhost || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    },
+    {
+      "name": "auth-service",
+      "image": "209466560852.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest",
+      "essential": true,
+      "portMappings": [ { "containerPort": 8081, "protocol": "tcp" } ],
+      "dependsOn": [ { "containerName": "mysql-db", "condition": "HEALTHY" } ]
+    },
+    {
+      "name": "wallet-service",
+      "image": "209466560852.dkr.ecr.us-east-1.amazonaws.com/wallet-service:latest",
+      "essential": true,
+      "portMappings": [ { "containerPort": 8082, "protocol": "tcp" } ],
+      "dependsOn": [ { "containerName": "mysql-db", "condition": "HEALTHY" } ]
+    },
+    {
+      "name": "api-gateway",
+      "image": "209466560852.dkr.ecr.us-east-1.amazonaws.com/api-gateway:latest",
+      "essential": true,
+      "portMappings": [ { "containerPort": 8080, "protocol": "tcp" } ],
+      "dependsOn": [
+        { "containerName": "auth-service", "condition": "START" },
+        { "containerName": "wallet-service", "condition": "START" }
+      ]
+    }
+  ]
+}

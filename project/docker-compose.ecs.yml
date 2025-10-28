@@ -1,0 +1,84 @@
+version: "3.8"
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: walletuser
+      MYSQL_PASSWORD: walletpass
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/mysql-db
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: ecs
+
+  auth-service:
+    image: 209466560852.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+    build: ./auth-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/auth_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: walletuser
+      SPRING_DATASOURCE_PASSWORD: walletpass
+    depends_on:
+      - mysql-db
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/auth-service
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: ecs
+
+  wallet-service:
+    image: 209466560852.dkr.ecr.us-east-1.amazonaws.com/wallet-service:latest
+    build: ./wallet-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/wallet_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: walletuser
+      SPRING_DATASOURCE_PASSWORD: walletpass
+    depends_on:
+      - mysql-db
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/wallet-service
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: ecs
+
+  api-gateway:
+    image: 209466560852.dkr.ecr.us-east-1.amazonaws.com/api-gateway:latest
+    build: ./qr-cloud-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - wallet-service
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/api-gateway
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: ecs
