@@ -16,7 +16,7 @@ spring:
       routes:
         # Auth Service Route
         - id: authModule
-          uri: http://auth-service:8084
+          uri: http://localhost:8084
           predicates:
             - Path=/api/auth/**
           filters:
@@ -25,7 +25,7 @@ spring:
 
         # Wallet Service Route
         - id: walletModule
-          uri: http://wallet-service:8081
+          uri: http://localhost:8081
           predicates:
             - Path=/api/wallets/**
           filters:
